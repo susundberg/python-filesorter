@@ -91,9 +91,10 @@ def main( conf ):
         else:
            if os.path.exists( full_target ):
                if check_for_duplicate( full_source, full_target ) == True:
-                   print_info("Duplicate file '%s' - '%s': removing source" % (full_source, full_target ) )
+                   print_info("Duplicate file (md5 and filename match) '%s' - '%s': removing source" % (full_source, full_target ) )
                    if conf.dry_run == False:
                       file_remove( conf, full_source )
+                   continue   
                else: # File exists, but not duplicate -> two same named files
                    
                    new_full_target = find_new_free_name( full_target_path, filename )
