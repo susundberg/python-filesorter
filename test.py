@@ -24,14 +24,14 @@ def make_a_file( path, sub1, fns, dt ):
     mt = time.mktime( dt.timetuple() )
     os.utime( full_fn, ( mt, mt ) ) 
     
-def check_files( path, files ):
+def check_files( path, files, exists=True ):
   for file in files:
     full_path = os.path.join( path, file )
     was = os.path.exists( full_path )
-    print("Check: " + full_path)
-    if not was:
-      raise Exception("File %s is not found" % full_path )
-    
+    if was != exists:
+      raise Exception("File %s invalid exists status: %d" % (full_path, was) )
+
+   
   
 class TestSorter(unittest.TestCase):
 
@@ -47,6 +47,7 @@ class TestSorter(unittest.TestCase):
       check_files( self.test_dir, ("sub2/FOO",) )
       sorter.main( get_me_settings( self.test_dir,  self.target_dir , "--dry_run" ) )
       check_files( self.test_dir, ("sub1/FOO",) )
+      check_files( self.target_dir, ("2010-10/",), exists=False )
       sorter.main( get_me_settings( self.test_dir,  self.target_dir ) )
       check_files( self.target_dir, ("2010-10/FOO", "2010-10/BAR", "2010-11/FOO", "2010-11/BAR" ) )
       

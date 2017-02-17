@@ -62,6 +62,12 @@ def file_remove( conf, source ):
    if conf.dry_run == False:
       os.remove( source )
 
+def file_mkdir( conf, path ):
+   if conf.verbose : 
+       print_info( " @ mkdir %s"  % ( path ) )
+   if conf.dry_run == False:
+       os.makedirs( path )
+   
 def main( conf ):
    
    if conf.dry_run :
@@ -80,7 +86,8 @@ def main( conf ):
                                         
         
         if not os.path.exists( full_target_path ):
-           os.makedirs( full_target_path )
+           file_mkdir( conf, full_target_path )
+           
         else:
            if os.path.exists( full_target ):
                if check_for_duplicate( full_source, full_target ) == True:
