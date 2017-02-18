@@ -40,33 +40,41 @@ def check_files( path, files, exists=True ):
 class TestSorter(unittest.TestCase):
 
     def setUp(self):
-      self.test_dir = tempfile.mkdtemp()
+      self.source_dir = tempfile.mkdtemp()
       self.target_dir = tempfile.mkdtemp()
       
 
     def test_simple(self):
-      make_a_file( self.test_dir, "sub1", ("FOO","BAR") , datetime.date( 2010,10,30) )
-      make_a_file( self.test_dir, "sub2", ("FOO","BAR"), datetime.date( 2010,11,30) )
-      check_files( self.test_dir, ("sub1/FOO",) )
-      check_files( self.test_dir, ("sub2/FOO",) )
-      sorter.main( get_me_settings( self.test_dir,  self.target_dir , "--dry_run" ) )
-      check_files( self.test_dir, ("sub1/FOO",) )
+      make_a_file( self.source_dir, "sub1", ("FOO","BAR") , datetime.date( 2010,10,30) )
+      make_a_file( self.source_dir, "sub2", ("FOO","BAR"), datetime.date( 2010,11,30) )
+      check_files( self.source_dir, ("sub1/FOO",) )
+      check_files( self.source_dir, ("sub2/FOO",) )
+      sorter.main( get_me_settings( self.source_dir,  self.target_dir , "--dry_run" ) )
+      check_files( self.source_dir, ("sub1/FOO",) )
       check_files( self.target_dir, ("2010-10/",), exists=False )
-      sorter.main( get_me_settings( self.test_dir,  self.target_dir ) )
+      sorter.main( get_me_settings( self.source_dir,  self.target_dir ) )
       check_files( self.target_dir, ("2010-10/FOO", "2010-10/BAR", "2010-11/FOO", "2010-11/BAR" ) )
-      
+
+    def test_rmdir(self):
+      for sub in ("sub1", "sub2" ):
+         make_a_file( self.source_dir, sub, ("FOO","BAR.JPEG"), datetime.date( 2010,10,30) )
+      sorter.main( get_me_settings( os.path.join( self.source_dir, "sub1" ) ,  self.target_dir,  ) )
+      check_files( self.source_dir, ("sub1/",), exists=True)
+      sorter.main( get_me_settings( os.path.join( self.source_dir, "sub2" ) ,  self.target_dir, "--rmdir" ) )
+      check_files( self.source_dir, ("sub2/",), exists=False)
+            
     def test_duplicate(self):
       for sub in ("sub1", "sub2", "sub3" ):
-         make_a_file( self.test_dir, sub, ("FOO","BAR.JPEG"), datetime.date( 2010,10,30) )
-      sorter.main( get_me_settings( self.test_dir,  self.target_dir , "--verbose" ) )
+         make_a_file( self.source_dir, sub, ("FOO","BAR.JPEG"), datetime.date( 2010,10,30) )
+      sorter.main( get_me_settings( self.source_dir,  self.target_dir , "--verbose" ) )
       
     def test_duplicate_same_content( self ):
       for sub in ("sub1", "sub2", "sub3" ):
-         make_a_file( self.test_dir, sub, ("FOO",), datetime.date( 2010,10,30), content="SAME CONTENT" )
-      sorter.main( get_me_settings( self.test_dir,  self.target_dir , "--verbose" ) ) 
+         make_a_file( self.source_dir, sub, ("FOO",), datetime.date( 2010,10,30), content="SAME CONTENT" )
+      sorter.main( get_me_settings( self.source_dir,  self.target_dir , "--verbose" ) ) 
       
     def tearDown(self):
-      shutil.rmtree(self.test_dir)
+      shutil.rmtree(self.source_dir)
       shutil.rmtree(self.target_dir)
       
 

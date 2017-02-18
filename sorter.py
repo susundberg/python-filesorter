@@ -16,6 +16,7 @@ def get_parser():
    parser.add_argument("target_path", help="where to move files")
    parser.add_argument("--dry_run", help="Print only what to do", dest='dry_run', action='store_true' )
    parser.add_argument("--verbose", help="Be more verbose", dest='verbose', action='store_true' )
+   parser.add_argument("--rmdir", help="Remove empty directories", dest='rmdir', action='store_true' )
    return parser
 
 def get_arguments():
@@ -67,6 +68,14 @@ def file_mkdir( conf, path ):
        print_info( " @ mkdir %s"  % ( path ) )
    if conf.dry_run == False:
        os.makedirs( path )
+
+def file_rmdir( conf, path ):
+   if conf.verbose : 
+       print_info( " @ rmdir %s"  % ( path ) )
+       
+   if conf.dry_run == False:
+       os.rmdir( path )
+   
    
 def main( conf ):
    
@@ -83,11 +92,9 @@ def main( conf ):
         
         full_target_path = os.path.join( conf.target_path, new_path)
         full_target = os.path.join( full_target_path, filename )
-                                        
         
         if not os.path.exists( full_target_path ):
            file_mkdir( conf, full_target_path )
-           
         else:
            if os.path.exists( full_target ):
                if check_for_duplicate( full_source, full_target ) == True:
@@ -101,9 +108,16 @@ def main( conf ):
                    print_warning("Files '%s' - '%s' same name, different md5, renaming to %s" % 
                                   (full_source, full_target, new_full_target ))
                    full_target = new_full_target
-        file_move( conf, full_source, full_target )            
-     
-
+        file_move( conf, full_source, full_target )
+        
+   # Then remove empty directories
+   if conf.rmdir:
+      for dirpath, dnames, fnames in os.walk( conf.input_path ):
+         if len(fnames) != 0: # Well currently this is always true, but we might want to have mask to pattern those
+            continue 
+         file_rmdir( conf, dirpath )
+   
+         
 if __name__ == "__main__":
     main( get_arguments() )
    
